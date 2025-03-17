@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { jwtVerify, SignJWT } from "jose";
 import { db } from "./db";
+import { cookies } from "next/headers";
 
 export const hashedPassword = (password) => bcrypt.hash(password, 10);
 
@@ -32,8 +33,14 @@ export const validateJwt = async (jwt) => {
 const cookie_secret = process.env.COOKIE_NAME;
 //getting the cookie
 
-export const getUserFromJwt = async (cookies) => {
-  const jwt = cookies.get(cookie_secret);
+export const getUserFromJwt = async () => {
+  // const jwt = cookies.get(cookie_secret);
+  const cookieStore = await cookies();
+  const jwt = cookieStore.get(cookie_secret)?.value;
+  if (!jwt) {
+    console.error("No JWT found in cookies");
+    return null;
+  }
   const { id } = await validateJwt(jwt);
   const user = await db.user.findUnique({
     where: {
