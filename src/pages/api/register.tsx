@@ -6,6 +6,15 @@ export default async function register(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Check if email already exists
+  const existingUser = await db.user.findUnique({
+    where: { email: req.body.email },
+  });
+
+  if (existingUser) {
+    return res.status(400).json({ error: "Email already in use" });
+  }
+
   if (req.method === "POST") {
     const user = await db.user.create({
       data: {
